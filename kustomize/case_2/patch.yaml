@@ -1,0 +1,19 @@
+- op: add
+  path: /spec/template/spec/containers/0/volumeMounts
+  value: []
+
+- op: add
+  path: /spec/template/spec/containers/0/volumeMounts/-
+  value:
+    name: myvolume
+    mountPath: /usr/share/nginx/html
+
+- op: add
+  path: /spec/template/spec/volumes
+  value: []
+
+- op: add
+  path: /spec/template/spec/volumes/-
+  value:
+    name: myvolume
+    emptyDir: {}

@@ -1,0 +1,36 @@
+patchesJson6902:
+- target:
+    version: v1
+    group: apps
+    kind: Deployment
+    name: nginx
+  path: patch.yaml
+
+commonLabels:
+  app: nginx
+  env: dev
+
+replicas:
+- name: nginx
+  count: 3
+
+replacements:
+  - source:
+      kind: Deployment
+      name: nginx
+      fieldPath: metadata.name
+    targets:
+      - select:
+          kind: Service
+          name: nginx
+        fieldPaths:
+          - metadata.name
+
+images:
+- name: nginx
+  newName: nginx
+  newTag: '1.23'
+
+resources:
+- deployment.yaml
+- service.yaml

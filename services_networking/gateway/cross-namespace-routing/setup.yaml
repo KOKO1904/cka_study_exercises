@@ -1,0 +1,159 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: home
+  template:
+    metadata:
+      labels:
+        app: home
+    spec:
+      containers:
+      - name: home
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: home-content
+          mountPath: /usr/share/nginx/html/
+      volumes:
+      - name: home-content
+        configMap:
+          name: home-configmap
+
+---
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-configmap
+data:
+  index.html: |
+    <html><body><h1>Welcome to home page</h1></body></html>
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-svc
+spec:
+  selector:
+    app: home
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog
+  template:
+    metadata:
+      labels:
+        app: blog
+    spec:
+      containers:
+      - name: blog
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: blog-content
+          mountPath: /usr/share/nginx/html/
+      volumes:
+      - name: blog-content
+        configMap:
+          name: blog-configmap
+
+---
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blog-configmap
+data:
+  index.html: |
+    <html><body><h1>Welcome to blog page</h1></body></html>
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: blog-svc
+spec:
+  selector:
+    app: blog
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: store
+  template:
+    metadata:
+      labels:
+        app: store
+    spec:
+      containers:
+      - name: store
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: store-content
+          mountPath: /usr/share/nginx/html/
+      volumes:
+      - name: store-content
+        configMap:
+          name: store-configmap
+
+---
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: store-configmap
+data:
+  index.html: |
+    <html><body><h1>Welcome to store page</h1></body></html>
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: store-svc
+spec:
+  selector:
+    app: store
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80

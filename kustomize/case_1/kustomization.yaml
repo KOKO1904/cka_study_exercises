@@ -1,0 +1,16 @@
+patchesJson6902:
+- target:
+    version: v1
+    group: apps
+    kind: Deployment
+    name: nginx
+  path: patch.yaml
+
+configMapGenerator:
+  - name: myconfig
+    files:
+    - app.properties
+
+resources:
+- deployment.yaml
+- service.yaml
