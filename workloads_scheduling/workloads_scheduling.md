@@ -1,5 +1,176 @@
 # Workloads & Scheduling
 
+## Rolling Updates and Rollbacks
+
+### Your company manages a production Kubernetes cluster. You need to deploy a critical web application and ensure high availability while performing updates.
+
+Requirements:
+
+- Create a Deployment named webapp with the following specifications:
+  - Image: nginx:1.25
+  - 4 replicas
+  - Container port: 80
+  - Strategy: RollingUpdate with a maxUnavailable of 1 and maxSurge of 2
+  - Record the reason for the initial deployment using a change-cause, you can use "Initial deployment of webapp".
+- Expose the Deployment using a ClusterIP Service named webapp-service on port 80.
+- Perform a rolling update to upgrade the image to nginx:1.26:
+  - Ensure that at any point, at least 3 replicas are available.
+  - Update the change-cause to reflect the deployment change, you can use "Updated image to nginx:1.26".
+- Simulate a failure during the update:
+  - Change the image to nginx:1.31.
+- Once failed, change the change-cause annotation and put the reason of failure, you can use: "ImagePullBackOff nginx:1.31".
+- Perform a rollback to the previous stable revision (nginx:1.26).
+  - Change the change-cause to indicate the reason of the rollback, you can use "Rollback because image error"
+- Verify:
+  - All replicas are running the correct image.
+  - The Service is still routing traffic correctly.
+  - No downtime occurred during the rolling update and rollback.
+
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+# First we create the deployment
+kubectl create deploy webapp --image=nginx:1.25 --replicas=4 --port=80 --dry-run=client -o yaml > deploy.yaml
+
+# deploy.yaml - We configure the rolling update strategy with maxUnavailable and maxSurge parameters and include a change-cause to document the deployment reason
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webapp
+  name: webapp
+  annotations:
+    kubernetes.io/change-cause: "Initial deployment of webapp"
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: webapp
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - image: nginx:1.25
+        name: nginx
+        ports:
+        - containerPort: 80
+        resources: {}
+status: {}
+
+# We create the deployment
+kubectl create -f deploy.yaml
+
+# We check the change-cause annotation through kubectl rollout history
+
+kubectl rollout history deploy webapp
+
+# We get something like this
+REVISION  CHANGE-CAUSE
+1         Initial deployment of webapp
+
+# Next, we expose the Deployment using a ClusterIP service
+kubectl expose deploy webapp --port=80 --target-port=80 --type=ClusterIP
+
+# Then, we update the Deployment’s image and its change-cause.
+kubectl edit deploy webapp
+
+# We change the annotation and the image version
+annotations:
+  kubernetes.io/change-cause: "Updated image to nginx:1.26"
+
+containers:
+- name: nginx
+  image: nginx:1.26
+
+# We verify at least there 3 replicas available
+kubectl get pods -w
+
+# We check the new annotation
+kubectl rollout history deploy webapp
+
+REVISION  CHANGE-CAUSE
+1         Initial deployment of webapp
+2         Updated image to nginx:1.26
+
+# We update the image again to nginx:1.31
+kubectl set image deploy webapp nginx:nginx:1.31
+
+# We check if the pods are running
+kubectl get pods
+NAME                          READY   STATUS             RESTARTS   AGE
+webapp-74cc5576d9-5g4p7       0/1     ImagePullBackOff   0          18s
+webapp-74cc5576d9-jbcv4       0/1     ErrImagePull       0          18s
+webapp-74cc5576d9-z9tcs       0/1     ImagePullBackOff   0          17s
+webapp-c974bc55d-bxzth        1/1     Running            0          99s
+webapp-c974bc55d-vq27j        1/1     Running            0          99s
+webapp-c974bc55d-x6l8j        1/1     Running            0          99s
+
+# We change the annotation
+kubectl edit deploy webapp
+
+annotations:
+  kubernetes.io/change-cause: "ImagePullBackOff nginx:1.31"
+
+# We check the annotation using rollout history
+kubectl rollout history deploy webapp
+
+REVISION  CHANGE-CAUSE
+2         Initial deployment of webapp
+3         ImagePullBackOff nginx:1.31
+
+# Since we get an error, we need to rollback to version 2, but before we need to check if version 2 has a stable version of the image
+kubectl rollout history deploy webapp --revision=2
+
+# You should see output similar to the following:
+image: nginx: 1.26
+
+# Next, we perform the rollback.
+kubectl rollout undo deploy webapp --to-revision=2
+
+# We change the annotation
+kubectl edit deploy webapp
+
+annotations:
+  kubernetes.io/change-cause: "Rollback because image error"
+
+# We perform another rollout history to check the annotation
+kubectl rollout history deploy webapp
+
+# We get something like this:
+
+REVISION  CHANGE-CAUSE
+3      ImagePullBackOff nginx:1.31
+4      Rollback because image error
+
+# Finally, we check that everything is working
+
+# Check correct image
+kubectl describe deploy webapp | grep -i Image
+
+# Check endpoints
+kubectl get ep
+
+# We verify that the application remained available throughout the update
+kubectl rollout status deploy webapp
+
+
+```
+
+</p>
+</details>
+
+
 ## Sidecar containers
 
 ## Your company has a Deployment named webapp-prod in the default namespace. This Deployment runs a main container called web-server that writes log messages to a file located at /var/log/app.log every second.
