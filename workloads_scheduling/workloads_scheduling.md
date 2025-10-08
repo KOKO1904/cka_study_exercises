@@ -443,7 +443,7 @@ kubectl taint node controlplane role=backend:NoSchedule
 kubectl label node node01 env=dev
 ```
 pod_scheduling_exercise_1.yaml
-github.com > AGMTZG > cka_study_exercises > blob > main > workloads_scheduling > setup > [Pod scheduling exercise 1](https://github.com/AGMTZG/cka_study_exercises/blob/main/workloads_scheduling/setup/pod_scheduling_exercise_1.yaml)
+- github.com > AGMTZG > cka_study_exercises > blob > main > workloads_scheduling > setup > [Pod scheduling exercise 1](https://github.com/AGMTZG/cka_study_exercises/blob/main/workloads_scheduling/setup/pod_scheduling_exercise_1.yaml)
 
 **You can use killercoda playgrounds to practice this scenario** <br>
 killercoda.com > Playgrounds > Scenario > kubernetes > [Pod scheduling 1](https://killercoda.com/playgrounds/scenario/kubernetes)
@@ -615,7 +615,7 @@ kubectl label node controlplane kubernetes.io/os=linux
 kubectl label node node01 tier=testing
 ```
 pod_scheduling_exercise_2.yaml
-github.com > AGMTZG > cka_study_exercises > blob > main > workloads_scheduling > setup > [Pod scheduling exercise 2](https://github.com/AGMTZG/cka_study_exercises/blob/main/workloads_scheduling/setup/pod_scheduling_exercise_2.yaml)
+- github.com > AGMTZG > cka_study_exercises > blob > main > workloads_scheduling > setup > [Pod scheduling exercise 2](https://github.com/AGMTZG/cka_study_exercises/blob/main/workloads_scheduling/setup/pod_scheduling_exercise_2.yaml)
 
 **You can use killercoda playgrounds to practice this scenario** <br>
 killercoda.com > Playgrounds > Scenario > kubernetes > [Pod scheduling 2](https://killercoda.com/playgrounds/scenario/kubernetes)
