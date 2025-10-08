@@ -1,7 +1,7 @@
 # CKA_STUDY_EXERCISES
 
 <p align="center">
-  <img src="https://training.linuxfoundation.org/wp-content/uploads/2019/03/logo_cka_whitetext-300x293.png" alt="Certified Kubernetes Administrator" width="150"/>
+  <img src="https://training.linuxfoundation.org/wp-content/uploads/2019/03/logo_cka_whitetext-300x293.png" alt="Certified Kubernetes Administrator" width="300"/>
 </p>
 
 ## Domains & Competencies
@@ -47,3 +47,17 @@
 - Use the Gateway API to manage Ingress traffic
 - Know how to use Ingress controllers and Ingress resources
 - Understand and use CoreDNS
+
+<br>
+
+---
+
+<p align="center">
+If this helped you on your journey to become a Certified Kubernetes Administrator,  consider supporting my work 💙
+</p>
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/agmtzg" target="_blank">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="200"/>
+  </a>
+</p>
