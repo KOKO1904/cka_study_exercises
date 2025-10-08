@@ -26,6 +26,9 @@ Requirements:
   - The Service is still routing traffic correctly.
   - No downtime occurred during the rolling update and rollback.
 
+**You can use killercoda playgrounds to practice this scenario** <br>
+killercoda.com > Playgrounds > Scenario > kubernetes > [Rolling updates & rollacks](https://killercoda.com/playgrounds/scenario/kubernetes)
+
 ---
 
 <details>
@@ -189,57 +192,11 @@ Your task:
   ```
 - Mount a ConfigMap containing the fluent.conf file into the sidecar container at /fluentd/etc/fluent.conf.
 - Do not modify the main container web-server.
-- The sidecar must run alongside the main container
+- The sidecar must run alongside the main container.
+- The workloads_scheduling folder contains ready-to-use YAML files and resources to kick off this exercise. Use the file named sidecar_containers_setup.yaml to get started..
 
-```bash
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: webapp-prod
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: webapp-prod
-  template:
-    metadata:
-      labels:
-        app: webapp-prod
-    spec:
-      containers:
-        - name: web-server
-          image: alpine
-          command:
-            - sh
-            - -c
-            - |
-              mkdir -p /var/log
-              while true; do
-                echo "$(date) log message" >> /var/log/app.log
-                sleep 1
-              done
-
----
-
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: fluentd-config
-  namespace: default
-data:
-  fluent.conf: |
-    <source>
-      @type tail
-      path /var/log/app.log
-      pos_file /var/log/fluentd.pos
-      tag app.logs
-      format none
-    </source>
-
-    <match **>
-      @type stdout
-    </match>
-```
+**You can use killercoda playgrounds to practice this scenario** <br>
+killercoda.com > Playgrounds > Scenario > kubernetes > [Sidecar containers](https://killercoda.com/playgrounds/scenario/kubernetes)
 
 ---
 
@@ -663,6 +620,9 @@ spec:
             matchLabels:
               service: logger
           topologyKey: "kubernetes.io/hostname"
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+
 
 #auth
 apiVersion: v1
@@ -681,6 +641,9 @@ spec:
     operator: "Equal"
     value: "admin"
     effect: "NoExecute"
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+
 
 #logger
 apiVersion: v1
@@ -705,6 +668,9 @@ spec:
           - key: "kubernetes.io/os"
             operator: "In"
             values: ["linux"]
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+
 
 #db
 apiVersion: v1
@@ -717,6 +683,9 @@ spec:
   containers:
   - name: db
     image: mysql
+    env:
+    - name: MYSQL_ROOT_PASSWORD
+      value: "12345678"
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -730,6 +699,8 @@ spec:
         - key: "env"
           operator: "In"
           values: ["staging"]
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
 
 ```
 

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp-prod
+  template:
+    metadata:
+      labels:
+        app: webapp-prod
+    spec:
+      containers:
+        - name: web-server
+          image: alpine
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /var/log
+              while true; do
+                echo "$(date) log message" >> /var/log/app.log
+                sleep 1
+              done
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+  namespace: default
+data:
+  fluent.conf: |
+    <source>
+      @type tail
+      path /var/log/app.log
+      pos_file /var/log/fluentd.pos
+      tag app.logs
+      format none
+    </source>
+
+    <match **>
+      @type stdout
+    </match>
