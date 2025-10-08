@@ -736,6 +736,104 @@ spec:
 </p>
 </details>
 
+## Enforce Multi-Label Governance with Conditional Validation
+
+### Your organization runs multiple applications in different environments (dev, staging, prod). To improve governance and resource tracking, all Pods must comply with owner and environment labeling rules, and some labels are conditionally required based on the app type.
+
+- Create a ValidatingAdmissionPolicy named require-owner-env that:
+  - Applies to pods in all namespaces.
+  - Validates that:
+    - Every Pod has an owner label.
+    - Every Pod has an env label, and its value must be one of ["dev","staging","prod"].
+    - If the Pod has app: web, it must also have a tier label (frontend or backend).
+    - Pods in the production namespace must have env: prod.
+  - For each validation failure, return an error message.
+- Bind the policy cluster-wide using a ValidatingAdmissionPolicyBinding.
+- Test the policy with Pods that both satisfy and violate the rules.
+
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+# First, verify if your cluster has the ValidatingAdmissionPolicy feature gate enabled. If not, you need to enable it manually in your kubeadm cluster.
+
+sudo vim /etc/kubernetes/manifests/kube-apiserver.yaml
+
+# Locate the section that defines the container’s command arguments and add the following line:
+
+- --feature-gates=ValidatingAdmissionPolicy=true
+
+# Create the ValidatingAdmissionPolicy
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: require-owner-env
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  validations:
+    - expression: "has(object.metadata.labels['owner']) && has(object.metadata.labels['env']) && ['dev','staging','prod'].exists(e, e == object.metadata.labels['env']) && ((object.metadata.labels['app'] != 'web') || has(object.metadata.labels['tier'])) && ((object.metadata.namespace != 'production') || object.metadata.labels['env'] == 'prod')"
+      message: > 
+        Pod validation failed: 
+        - 'owner' label is required
+        - 'env' label is required and must be one of ['dev','staging','prod']
+        - If 'app' is 'web', a 'tier' label (frontend/backend) is required
+        - Pods in 'production' namespace must have 'env: prod'  
+
+# You need to link the ValidatingAdmissionPolicy with a ValidatingAdmissionPolicyBinding.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: require-owner-env-binding
+spec:
+  policyName: require-owner-env
+  validationActions: ["Deny"]
+
+# Finally, we test the policy.
+# Valid:
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webapp-valid
+  namespace: dev
+  labels:
+    owner: eng
+    env: dev
+    app: web
+    tier: frontend
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.26
+
+# Invalid:
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webapp-invalid
+  namespace: production
+  labels:
+    owner: eng
+    app: web
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.26
+
+```
+
+</p>
+</details>
+
+
 ## The company DataStream Inc. wants to deploy a static pod on a node called node01.
 
 Requirements:
