@@ -174,7 +174,10 @@ kubectl get storageclass -o custom-columns=Name:.metadata.name,Default:.metadata
 </p>
 </details>
 
-### Create a dynamic StorageClass named my-storage using the provisioner dynamic.com/provisioner, and set it as the default StorageClass. Then, create a PersistentVolumeClaim named my-pvc requesting 4 Gi of storage with access mode ReadWriteOnce, using the my-storage StorageClass. Finally, create an Nginx Pod named nginx that mounts this PVC at the path /pvc/data/.
+### Create a dynamic StorageClass named my-storage using the provisioner dynamic.com/provisioner with the following requirements:
+- Set it as the default StorageClass
+- Create a PersistentVolumeClaim named my-pvc requesting 4 Gi of storage with access mode ReadWriteOnce, using the my-storage StorageClass. 
+- Create an Nginx Pod named nginx that mounts this PVC at /pvc/data/
 
 ---
 
