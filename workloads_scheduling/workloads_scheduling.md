@@ -834,7 +834,7 @@ spec:
 </details>
 
 
-## The company DataStream Inc. wants to deploy a static pod on a node called node01.
+## Your team wants to deploy a static pod on a node called node01.
 
 Requirements:
 
