@@ -193,7 +193,9 @@ Your task:
 - Mount a ConfigMap containing the fluent.conf file into the sidecar container at /fluentd/etc/fluent.conf.
 - Do not modify the main container web-server.
 - The sidecar must run alongside the main container.
-- The workloads_scheduling folder contains ready-to-use YAML files and resources to kick off this exercise. Use the file named sidecar_containers_setup.yaml to get started..
+- The workloads_scheduling folder contains ready-to-use YAML files and resources to kick off this exercise:
+  - github.com > AGMTZG > cka_study_exercises > blob > main > workloads_scheduling > setup > [Sidecar containers setup](https://github.com/AGMTZG/cka_study_exercises/blob/main/workloads_scheduling/setup/sidecar_containers_setup.yaml)
+
 
 **You can use killercoda playgrounds to practice this scenario** <br>
 killercoda.com > Playgrounds > Scenario > kubernetes > [Sidecar containers](https://killercoda.com/playgrounds/scenario/kubernetes)
@@ -275,6 +277,10 @@ Requirements
 
   - Stabilize scaling down for 2 minutes (meaning it will not scale down faster than this window).
 
+**You can use killercoda playgrounds to practice this scenario** <br>
+killercoda.com > Playgrounds > Scenario > kubernetes > [HPA](https://killercoda.com/playgrounds/scenario/kubernetes)
+
+
 <details>
 <summary>Show commands / answers</summary>
 <p>
@@ -335,6 +341,10 @@ Your task:
 - Verify that the DaemonSet rollout completes successfully and that pods are scheduled with the assigned priority.
 
 Note: Under resource constraints, pods with lower priority in the monitoring namespace should be evicted to ensure the log-agent pods can run.
+
+**You can use killercoda playgrounds to practice this scenario** <br>
+killercoda.com > Playgrounds > Scenario > kubernetes > [Priority class](https://killercoda.com/playgrounds/scenario/kubernetes)
+
 
 ---
 
@@ -425,6 +435,18 @@ spec:
   - Labels: app=db
   - Requirement:
     - Should run on node01 using RequiredDuringSchedulingIgnoredDuringExecution node affinity (hard requirement) without any tolerations.
+
+Setup:
+
+```bash
+kubectl taint node controlplane role=backend:NoSchedule
+kubectl label node node01 env=dev
+```
+pod_scheduling_exercise_1.yaml
+github.com > AGMTZG > cka_study_exercises > blob > main > workloads_scheduling > setup > [Pod scheduling exercise 1](https://github.com/AGMTZG/cka_study_exercises/blob/main/workloads_scheduling/setup/pod_scheduling_exercise_1.yaml)
+
+**You can use killercoda playgrounds to practice this scenario** <br>
+killercoda.com > Playgrounds > Scenario > kubernetes > [Pod scheduling 1](https://killercoda.com/playgrounds/scenario/kubernetes)
 
 ---
 
@@ -550,11 +572,11 @@ spec:
 
 ## The company TechNova wants to deploy its applications with the following requirements:
 
-- There are two nodes: master and worker01.
+- There are two nodes: controlplane and node01.
 
-- master has a taint: role=admin:NoExecute.
+- controlplane has a taint: role=admin:NoExecute.
 
-- worker01 has a label tier=testing.
+- node01 has a label tier=testing.
 
 - Deploy four pods with these placement rules:
 
@@ -569,7 +591,7 @@ spec:
   - Image: busybox
   - Labels: service=auth
   - Requirement:
-    - Should tolerate the role=admin:NoExecute taint on the master node and be able to run there.
+    - Should tolerate the role=admin:NoExecute taint on the controlplane node and be able to run there.
 
 - **logger**
   - Image: busybox
@@ -582,8 +604,21 @@ spec:
   - Image: mysql
   - Labels: service=db
   - Requirements:
-    - Should run on worker01 only using RequiredDuringSchedulingIgnoredDuringExecution node affinity (hard requirement).
+    - Should run on node01 only using RequiredDuringSchedulingIgnoredDuringExecution node affinity (hard requirement).
     - Should prefer namespaces labeled env=staging using PreferredDuringSchedulingIgnoredDuringExecution namespace selector (soft preference).
+
+Setup:
+
+```bash
+kubectl taint node controlplane role=admin:NoExecute
+kubectl label node controlplane kubernetes.io/os=linux
+kubectl label node node01 tier=testing
+```
+pod_scheduling_exercise_2.yaml
+github.com > AGMTZG > cka_study_exercises > blob > main > workloads_scheduling > setup > [Pod scheduling exercise 2](https://github.com/AGMTZG/cka_study_exercises/blob/main/workloads_scheduling/setup/pod_scheduling_exercise_2.yaml)
+
+**You can use killercoda playgrounds to practice this scenario** <br>
+killercoda.com > Playgrounds > Scenario > kubernetes > [Pod scheduling 2](https://killercoda.com/playgrounds/scenario/kubernetes)
 
 ---
 
@@ -722,6 +757,9 @@ spec:
 - Bind the policy cluster-wide using a ValidatingAdmissionPolicyBinding.
 - Test the policy with Pods that both satisfy and violate the rules.
 
+**You can use killercoda playgrounds to practice this scenario** <br>
+killercoda.com > Playgrounds > Scenario > kubernetes > [Pod scheduling 2](https://killercoda.com/playgrounds/scenario/kubernetes)
+
 ---
 
 <details>
@@ -824,6 +862,9 @@ Tasks:
 - Explain where this YAML file should be placed on the node for Kubernetes to automatically manage it.
 
 - Mention what component reads the static pod YAML and ensures it runs.
+
+**You can use killercoda playgrounds to practice this scenario** <br>
+killercoda.com > Playgrounds > Scenario > kubernetes > [Pod scheduling 2](https://killercoda.com/playgrounds/scenario/kubernetes)
 
 ---
 
