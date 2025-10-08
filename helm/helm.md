@@ -4,7 +4,7 @@
 
 Please complete the following tasks:
 
-- Create a Helm template for installing Apache HTTP Server v8.5.70 with the serverStatus module.
+- Create a Helm template to install Apache HTTP Server v8.5.70 with the mod_status module enabled. Locate the apacheExtraModules section and add the module there.
 
 - Proceed to install Apache HTTP Server using this template.
 
@@ -30,7 +30,7 @@ apacheExtraModules: []
 
 # Add the status_module to enable serverStatus
 apacheExtraModules:
-  - status_module
+  - mod_status
 
 # Generate the manifests using Helm template
 helm template apache bitnami/apache --version 8.5.70 -f apache-values.yaml
