@@ -1,12 +1,30 @@
 # Helm
 
-### Your company requires the installation of Apache HTTP Server version 8.5.70 in their Kubernetes cluster using the official Helm chart from the Bitnami repository: https://charts.bitnami.com/bitnami.
+### Your manager has asked you to deploy Argo CD in a Kubernetes cluster using Helm. The goal is to test your ability to configure Helm charts using a values.yaml file and understand Kubernetes deployment options.
 
-Please complete the following tasks:
+- Install the Argo CD chart using the repository: https://argoproj.github.io/argo-helm.
 
-- Create a Helm template to install Apache HTTP Server v8.5.70 with the mod_status module enabled. Locate the apacheExtraModules section and add the module there.
-
-- Proceed to install Apache HTTP Server using this template.
+- Create a values.yaml file with the following configuration:
+  - Enable redis-ha
+  - Server:
+    - Enable autoscaling with the next paramenters:
+      - minReplicas: 2
+      - maxReplicas: 3
+      - Ingress:
+        - Enabled with host argo-cd.local
+        - Ingress classname traefik
+        - Annotations: 
+          - traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+          - traefik.ingress.kubernetes.io/router.middleware: "default-mymiddleware@kubernetescrd"
+        - TLS using secret argo-cd-tls
+  - repoServer:
+    - Enable autoscaling with the next paramenters:
+      - minReplicas: 2
+      - maxReplicas: 4
+  - applicationSet:
+      - Change replicas to 2
+- Create the chart named argo-chart using the values.yaml in the namespace argocd
+- Verify that the settings defined in the values.yaml were successfully deployed.
 
 ---
 
@@ -14,26 +32,50 @@ Please complete the following tasks:
 <summary>Show commands / answers</summary>
 <p>
 
-
 ```bash
-helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
-helm search repo bitnami | grep apache
 
-# This is the result
-bitnami/apache      11.4.29         2.4.65          Apache HTTP Server is an open-source HTTP serve...
+helm show values argo/argo-cd > argo-cd.yaml
 
-helm show values bitnami/apache --version 8.5.70 > apache-values.yaml
+# you can use for example: /^server:/ to efficiently search for through the YAML file
+vim argo-cd.yaml
 
-# Search for this section
-apacheExtraModules: []
+# values.yaml
+redis-ha:
+  enable: true
+server:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 3
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+      traefik.ingress.kubernetes.io/router.middleware: default-mymiddleware@kubernetescrd
+    hostname: argo-cd.local
+    extraTls:
+      - hosts:
+        - argocd.example.com
+        secretName: argo-cd-tls
+repoServer:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+applicationSet:
+  replicas: 2
 
-# Add the status_module to enable serverStatus
-apacheExtraModules:
-  - mod_status
+# We create the chart
 
-# Generate the manifests using Helm template
-helm template apache bitnami/apache --version 8.5.70 -f apache-values.yaml
+kubectl create ns argocd
+helm install -n argocd argo-chart argo/argo-cd -f values.yaml 
+
+# We check if the changes were successful
+helm get manifest argo-chart -n argocd | grep -i <value to search>
+
 ```
 
 </p>
