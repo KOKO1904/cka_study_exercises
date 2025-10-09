@@ -960,7 +960,7 @@ spec:
             done
         resources:
           requests:
-            memory: "921Mi"
+            memory: "922Mi"
             cpu: "100m"
           limits:
             memory: "950Mi"
