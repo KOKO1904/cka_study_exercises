@@ -786,6 +786,9 @@ Task:
 Investigate how to make all three Pods run successfully at the same time. Ensure that the cluster continues to operate normally.
 Note: Your manager has informed you that they really need three replicas.
 
+**You can use killercoda playgrounds to practice this scenario** <br>
+killercoda.com > Playgrounds > Scenario > kubernetes > [Pod resources](https://killercoda.com/playgrounds/scenario/kubernetes)
+
 ---
 
 <details>
