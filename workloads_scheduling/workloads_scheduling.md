@@ -742,6 +742,221 @@ spec:
 </p>
 </details>
 
+## Pod resources
+
+### You have access to a Kubernetes cluster with two nodes, each with 2 GB of memory. Your manager wants to deploy the following Deployment. However, when applied, only two Pods are successfully scheduled and running, while the third Pod remains pending, and the manager does not know the reason:
+
+```bash
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: heavy-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: heavy-deployment
+  template:
+    metadata:
+      labels:
+        app: heavy-deployment
+    spec:
+      containers:
+      - name: memory-hog
+        image: alpine:latest
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "eating memory...";
+            MEM="";
+            while true; do
+              MEM="$MEM$(head -c 500M </dev/zero)";
+              sleep 2;
+            done
+        resources:
+          requests:
+            memory: "1.5Gi"
+            cpu: "100m"
+          limits:
+            memory: "1.5Gi"
+            cpu: "200m"
+```
+Task:
+
+Investigate how to make all three Pods run successfully at the same time. Ensure that the cluster continues to operate normally.
+Note: Your manager has informed you that they really need three replicas.
+
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+# Sometimes in production, this type of scenarios are very common, the goal is to get all three Pods running. You will need to experiment with cpu and memory allocation, because you don’t actually know the minimum cpu or memory required for the image to function properly.
+
+# First, verify the resource capacity of both nodes in the cluster:
+kubectl get nodes
+
+NAME           STATUS   ROLES           AGE   VERSION
+controlplane   Ready    control-plane   19d   v1.33.2
+node01         Ready    <none>          19d   v1.33.2
+
+# You can check the memory and cpu allocation by checking the capacity and allocation section:
+kubectl describe node controlplane
+kubectl describe node node01
+
+Both display this:
+Capacity:
+  cpu:                1
+  ephemeral-storage:  19221248Ki
+  hugepages-2Mi:      0
+  memory:             2199932Ki
+  pods:               110
+Allocatable:
+  cpu:                1
+  ephemeral-storage:  18698430040
+  hugepages-2Mi:      0
+  memory:             2097532Ki
+  pods:               110
+
+# The difference between capacity and allocatable memory indicates that the node has already reserved some memory for the kubelet and other internal system processes.
+# The allocatable section indicates the portion of node resources that can be allocated to Pods, while the capacity represents the total maximum resources available on the node.
+# For easier reading, convert Ki to Mi for calculations. If you want to see the total memory in GiB, you can convert Mi to Gi.
+
+2097532Ki |  1 Mi       =   2097532   /   1024 = 2.048,37109375Mi |   1Gi      =   2.048,37109375 / 1024 = 2,000362396240234375 Gi
+            1024 Ki                                                  1024Mi
+
+# Therefore, we can confirm that each node has:
+cpu: 1 = 1000m
+memory: = 2,000362396240234375Gi  = 2GB
+
+# Next, let's apply the Deployment to see what is failing:
+# deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: heavy-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: heavy-deployment
+  template:
+    metadata:
+      labels:
+        app: heavy-deployment
+    spec:
+      containers:
+      - name: memory-hog
+        image: alpine:latest
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "eating memory...";
+            MEM="";
+            while true; do
+              MEM="$MEM$(head -c 500M </dev/zero)";
+              sleep 2;
+            done
+        resources:
+          requests:
+            memory: "1.5Gi"
+            cpu: "100m"
+          limits:
+            memory: "1.5Gi"
+            cpu: "200m"
+
+
+
+kubectl create -f deploy.yaml
+kubectl get deploy
+
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+heavy-deployment   2/3     3            2           20s
+
+# We can see that only two Pods are scheduled, while the third Pod is not running.
+
+kubectl get po,deploy | grep heavy-deployment
+
+pod/heavy-deployment-7db6ffb7cb-4bf9m   1/1     Running   0          118s
+pod/heavy-deployment-7db6ffb7cb-687cw   1/1     Running   0          118s
+pod/heavy-deployment-7db6ffb7cb-nnqn5   0/1     Pending   0          118s
+deployment.apps/heavy-deployment   2/3     3            2           118s
+
+# One Pod is currently in Pending status. Let's investigate the reason:
+# We are going to describe the pending pod
+kubectl describe po heavy-deployment-7db6ffb7cb-nnqn5
+
+# In the events section, you will get something like this:
+Events:
+  Type     Reason            Age                  From               Message
+  ----     ------            ----                 ----               -------
+  Warning  FailedScheduling  12m                  default-scheduler  0/2 nodes are available: 2 Insufficient memory. preemption: 0/2 nodes are available: 2 No preemption victims found for incoming pod.
+  Warning  FailedScheduling  2m3s (x2 over 7m3s)  default-scheduler  0/2 nodes are available: 2 Insufficient memory. preemption: 0/2 nodes are available: 2 No preemption victims found for incoming pod.
+
+# Since the Deployment requests 1.5 GB per Pod and we have two nodes with 2 GB each, one Pod is scheduled on each node. This leaves only 0.5 GB free per node, which is insufficient to schedule the third Pod, so it remains pending.
+# There are two possible approaches: either reduce the number of replicas, or adjust the memory requests for each Pod to ensure all three replicas can be scheduled.
+# Since your manager asked you not to reduce the number of replicas, the only option is to adjust the memory requests per Pod.
+# So, we need to determine the maximum memory request that can be allocated on the node, which can be done by performing the following steps:
+
+# We divide the maximum allocatable memory (in Mi) by the three replicas. Since the problem does not specify that we must use only one node, we can consider both nodes. Otherwise, we would need a node affinity.
+# We can infer that one node will host 2 Pods while the other node will host 1 Pod.
+# Since each node has a maximum memory of 2,048.37 Mi, we will focus on the node hosting 2 Pods:
+
+2.048,37109375Mi  / 2 (number of replicas) = 1.024,185546875Mi (maximum request per replica)
+
+# To avoid potential issues—because a Pod could exceed its allocated memory—we should not set the exact value of 1.024,185546875Mi per Pod. Instead, reduce it by 5–10 % as a safety margin.
+# We will apply a 10 % reduction to this value, resulting in a safer memory allocation of ≈ 921,7669921875 Mi per Pod.
+
+1.024,185546875 * .90 = 921,7669921875 Mi per pod
+
+# With this, we should modify the requests and the limits of the deployment
+# deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: heavy-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: heavy-deployment
+  template:
+    metadata:
+      labels:
+        app: heavy-deployment
+    spec:
+      containers:
+      - name: memory-hog
+        image: alpine:latest
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "eating memory...";
+            MEM="";
+            while true; do
+              MEM="$MEM$(head -c 500M </dev/zero)";
+              sleep 2;
+            done
+        resources:
+          requests:
+            memory: "921Mi"
+            cpu: "100m"
+          limits:
+            memory: "950Mi"
+            cpu: "200m"
+
+# A memory limit of 950 Mi is applied to accommodate potential usage spikes.
+# We apply the new deployment and it should work!
+
+kubectl get deploy -w
+
+```
+
+</p>
+</details>
+
 ## Enforce Multi-Label Governance with Conditional Validation
 
 ### Your organization runs multiple applications in different environments (dev, staging, prod). To improve governance and resource tracking, all Pods must comply with owner and environment labeling rules, and some labels are conditionally required based on the app type.
