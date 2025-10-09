@@ -80,3 +80,142 @@ helm get manifest argo-chart -n argocd | grep -i <value to search>
 
 </p>
 </details>
+
+### Your team is developing a new application and decided to start with the database using a Master/Replica model deployed via Helm. For now, they want to deploy only the writer (master) node:
+
+tasks:
+
+- Create a Helm chart named app.
+- PostgreSQL Master (Writer):
+  - Create a StatefulSet template named writer in your Helm chart. 
+    - Requirements:
+      - 1 replica (master node)
+      - Persistent Volume Claim for data storage in /var/lib/postgresql/data
+      - Port 5432
+      - Configure a Secret for PostgreSQL credentials (username, password, database)
+      - Use a lightweight PostgreSQL image, e.g., bitnami/postgresql:15-debian-11-r0
+      - Expose the writer via a ClusterIP Service for future readers to connect
+- Verify your setup:
+  - Use helm install to deploy the chart
+  - Check that the writer pod is running
+  - Ensure Persistent Volume is bound and the Secret is created
+
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+helm create app
+
+# values.yaml
+postgresql:
+  image: bitnami/postgresql:15-debian-11-r0
+  replicaCount: 1
+  persistence:
+    enabled: true
+    size: 1Gi
+  port: 5432
+  credentials:
+    username: postgres
+    password: mysecurepassword
+    database: mydatabase
+
+
+
+
+# templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "app.fullname" . }}-secret
+type: Opaque
+stringData:
+  POSTGRES_USER: {{ .Values.postgresql.credentials.username }}
+  POSTGRES_PASSWORD: {{ .Values.postgresql.credentials.password }}
+  POSTGRES_DB: {{ .Values.postgresql.credentials.database }}
+
+
+
+
+# templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "app.fullname" . }}-writer
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.postgresql.port }}
+      targetPort: {{ .Values.postgresql.port }}
+      name: postgres
+  selector:
+    app.kubernetes.io/name: {{ include "app.name" . }}
+    role: writer
+
+
+
+
+# templates/writer-statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "app.fullname" . }}-writer
+spec:
+  serviceName: {{ include "app.fullname" . }}-writer
+  replicas: {{ .Values.postgresql.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "app.name" . }}
+      role: writer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "app.name" . }}
+        role: writer
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgresql.image }}
+          ports:
+            - containerPort: {{ .Values.postgresql.port }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "app.fullname" . }}-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "app.fullname" . }}-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "app.fullname" . }}-secret
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.postgresql.persistence.size }}
+
+# You can deploy the app by doing:
+helm install app ./app
+kubectl get pods
+kubectl get pvc
+kubectl get secret
+
+```
+
+</p>
+</details>
+
