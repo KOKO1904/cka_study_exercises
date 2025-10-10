@@ -1,6 +1,6 @@
 # Isolating Pods Within a Namespace
 
-### This NetworkPolicy denies all ingress traffic from pods within the same namespace (jupiter) but allows traffic from pods in any other namespace. It effectively isolates the metrics pods from intra-namespace traffic while permitting cross-namespace access.
+### We need to create a NetworkPolicy that denies all ingress traffic from pods within the same namespace (jupiter) but allows traffic from pods in any other namespace.
 
 ```bash
 apiVersion: networking.k8s.io/v1
