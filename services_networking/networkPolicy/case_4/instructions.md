@@ -18,3 +18,7 @@ is failing and fix the issue by adjusting the NetworkPolicy configuration. (Don'
 - Identify why the backend cannot connect to Redis.
 
 - Verify that connectivity is restored.
+
+# Important:
+# Do not add more NetworkPolicies. You may only edit existing NetworkPolicies.
+
