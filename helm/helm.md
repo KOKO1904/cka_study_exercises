@@ -219,3 +219,88 @@ kubectl get secret
 </p>
 </details>
 
+### Your team already deployed the PostgreSQL writer using a StatefulSet. Now your manager wants to support replica readers, but only in environments where they are needed (e.g., staging/prod, not dev). To avoid maintaining multiple charts, the reader should be deployed only when enabled via values.yaml, using Helm conditionals. Also, replicas don’t need persistent identities, so they must use a Deployment, not a StatefulSet.
+
+Tasks:
+
+- Add this values to your values.yaml
+
+```bash
+reader:
+  enabled: true   # If false, readers must not be deployed
+  replicaCount: 3
+  image:
+    repository: bitnami/postgresql
+    tag: 15-debian-11-r0
+```
+
+- Create a reader-deployment.yaml template that only renders if reader.enabled is true.
+
+- Create a matching Service for the readers, also wrapped in a conditional.
+
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+#Reader deployment
+{{- if .Values.reader.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.fullname" . }}-reader
+spec:
+  replicas: {{ .Values.reader.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ include "app.name" . }}-reader
+  template:
+    metadata:
+      labels:
+        app: {{ include "app.name" . }}-reader
+    spec:
+      containers:
+        - name: reader
+          image: "{{ .Values.reader.image.repository }}:{{ .Values.reader.image.tag }}"
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "app.fullname" . }}-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "app.fullname" . }}-secret
+                  key: password
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "app.fullname" . }}-secret
+                  key: database
+          ports:
+            - name: postgres
+              containerPort: 5432
+{{- end }}
+
+# Service
+{{- if .Values.reader.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "app.fullname" . }}-reader
+spec:
+  selector:
+    app: {{ include "app.name" . }}-reader
+  ports:
+    - port: 5432
+      targetPort: 5432
+{{- end }}
+
+```
+
+</p>
+</details>
+
