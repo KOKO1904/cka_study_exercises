@@ -19,11 +19,11 @@ Tasks:
       - path: /var/lib/mysql
         name: mysql_volume
 
-    - persistent volume claim(using the db_storage StorageClass with a dynamic provisioner)
-      - Create one persistent volume claim named my-pvc
+    - persistent volume claim:
+      - Create a volumeClaimTemplate with name mysql_volume
+      - storageClass: db_storage
       - requests: 1Gi
       - accessMode: ReadWriteOnce
-      - Note: Apply the PersistentVolumeClaim, but do not manage it with Kustomize.
 
     - port 3306
         
