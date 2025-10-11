@@ -1,0 +1,32 @@
+resources:
+- ../../base
+
+images:
+  - name: mysql
+    newName: mysql
+    newTag: prod
+
+commonLabels:
+  env: prod
+
+configMapGenerator:
+- name: db-config
+  literals:
+    - DB_HOST=mysql-prod.company.local
+    - DB_PORT=3306
+
+secretGenerator:
+- name: db-secret
+  literals:
+    - USERNAME=prod_admin
+    - PASSWORD=G7hT9pX2!zQ4
+
+
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: StatefulSet
+    name: mysql_app
+  path: patch-prod.json
+  type: json6902

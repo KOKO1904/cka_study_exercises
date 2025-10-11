@@ -1,0 +1,28 @@
+[
+  {
+    "op": "add",
+    "path": "/spec/template/spec/tolerations",
+    "value": [
+      {
+        "key": "prod",
+        "operator": "Equal",
+        "value": "true",
+        "effect": "NoSchedule"
+      }
+    ]
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/resources",
+    "value": {
+      "requests": {
+        "cpu": "500m",
+        "memory": "1Gi"
+      },
+      "limits": {
+        "cpu": "1",
+        "memory": "2Gi"
+      }
+    }
+  }
+]

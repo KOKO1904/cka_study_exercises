@@ -1,0 +1,27 @@
+[
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": {
+      "name": "DEBUG",
+      "value": "true"
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/initContainers",
+    "value": [
+      {
+        "name": "init-permissions",
+        "image": "busybox",
+        "command": ["sh", "-c", "chown -R mysql:mysql /var/lib/mysql"],
+        "volumeMounts": [
+          {
+            "name": "mysql_volume",
+            "mountPath": "/var/lib/mysql"
+          }
+        ]
+      }
+    ]
+  }
+]
