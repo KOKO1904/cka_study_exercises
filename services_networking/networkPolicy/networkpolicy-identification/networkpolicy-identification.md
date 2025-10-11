@@ -134,3 +134,151 @@ Ports:
 </p>
 </details>
 
+### In the namespace payments, ensure that only pods identified as role=billing-engine can communicate with pods tagged tier=processor. No other workloads should establish that connection within the namespace.
+
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+TargetPod: tier=processor
+Namespace: payments
+PolicyType: Ingress
+AllowedFromPodSelector: role=billing-engine
+AllowedFromNamespace: payments (optional, can be empty)
+Ports:
+```
+
+</p>
+</details>
+
+### Configure restrictions in analytics so that module=data-cruncher is able to request information from module=collector. At the same time, the collector group must not initiate any connections back to data-cruncher.
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+TargetPod: module=data-cruncher
+Namespace: analytics
+PolicyType: Egress
+AllowedToPodSelector: module=collector
+AllowedToNamespace: analytics (optional, can be empty)
+Ports:
+
+TargetPod: module=collector
+Namespace: analytics
+PolicyType: Egress
+AllowedToPodSelector: []
+AllowedToNamespace: []
+Ports:
+
+```
+
+</p>
+</details>
+
+### In research-env, workloads tagged agent=trainer should be cut off from the internet or any external endpoints. They should only exchange traffic with pods labeled agent=model-store within the same namespace.
+
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+TargetPod: agent=trainer
+Namespace: research-env
+PolicyType: Egress
+AllowedToPodSelector: agent=model-store
+AllowedToNamespace: research-env
+Ports:
+
+TargetPod: agent=trainer
+Namespace: research-env
+PolicyType: Ingress
+AllowedFromPodSelector: agent=model-store
+AllowedFromNamespace: research-env
+Ports:
+```
+
+</p>
+</details>
+
+### Namespace edge-services: traffic should only originate from pods labeled region=west-hub when they need to reach app=gateway-core. Any attempt from other labels or namespaces to contact gateway-core must be prevented.
+
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+TargetPod: app=gateway-core
+Namespace: edge-services
+PolicyType: Ingress
+AllowedFromPodSelector: region=west-hub
+AllowedFromNamespace: edge-services (optional)
+Ports:
+```
+
+</p>
+</details>
+
+### In internal-tools, the set labeled tier=frontend-suite may send requests to tier=report-engine, but under no circumstance should report-engine initiate connectivity toward other workloads.
+
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+TargetPod: tier=report-engine
+Namespace: internal-tools
+PolicyType: Ingress
+AllowedFromPodSelector: tier=frontend-suite
+AllowedFromNamespace: tier=frontend-suite (optional)
+Ports:
+
+TargetPod: tier=report-engine
+Namespace: internal-tools
+PolicyType: Egress
+AllowedToPodSelector: [] 
+AllowedToNamespace: []
+Ports: 
+```
+
+</p>
+</details>
+
+### Within the iot-mgmt namespace, connections to unit=sensor-hub must come strictly from pods labeled unit=relay-station. Additionally, the sensor-hub pods should not establish connectivity toward other groups.
+
+---
+
+<details>
+<summary>Show commands / answers</summary>
+<p>
+
+```bash
+TargetPod: unit=sensor-hub
+Namespace: iot-mgmt
+PolicyType: Ingress
+AllowedFromPodSelector: unit=relay-station
+AllowedFromNamespace: iot-mgmt (optional)
+Ports:
+
+TargetPod: unit=sensor-hub
+Namespace: iot-mgmt
+PolicyType:  Egress
+AllowedToPodSelector: [] 
+AllowedToNamespace: []
+Ports: 
+```
+
+</p>
+</details>
+
