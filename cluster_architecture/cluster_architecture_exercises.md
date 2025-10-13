@@ -481,8 +481,7 @@ kubeadm init --cri-socket=unix:///var/run/cri-dockerd.sock
 
 ### Set up a new Kubernetes user named alice with limited access to the projectx namespace. The user should have permissions to perform the following verbs on pods in that namespace:  list, get, update, delete, and create. You'll generate credentials, configure RBAC, and create a kubeconfig for access.
 
-**You can use killercoda playgrounds to practice this scenario** <br>
-killercoda.com > Playgrounds > Scenario > kubernetes > [Advanced RBAC](https://killercoda.com/playgrounds/scenario/kubernetes)
+**Use minikube to practice this scenario** <br>
 
 ---
 
@@ -585,8 +584,7 @@ current-context: alice-context
 
 ### Set up a new Kubernetes ServiceAccount named deploybot in the appenv namespace. The ServiceAccount should have permissions to perform the following verbs on deployments and replicasets in that namespace: list, get, update, delete, and create. You will generate a token, configure RBAC, and create a kubeconfig for access.
 
-**You can use killercoda playgrounds to practice this scenario** <br>
-killercoda.com > Playgrounds > Scenario > kubernetes > [Advanced RBAC](https://killercoda.com/playgrounds/scenario/kubernetes)
+**Use minikube to practice this scenario** <br>
 
 ---
 
