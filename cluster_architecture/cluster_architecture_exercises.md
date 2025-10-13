@@ -390,23 +390,49 @@ sudo systemctl stop containerd
 curl -Lo cri-o_1.33.0-2.1_amd64.deb https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v1.33/deb/amd64/cri-o_1.33.0-2.1_amd64.deb
 sudo dpkg -i cri-o_1.33.0-2.1_amd64.deb
 
+# We enable the service
+sudo systemctl start crio
+sudo systemctl enable crio
+
 # We configure crio to make him use systemd
 mkdir -p /etc/crio
 crio config default | sudo tee /etc/crio/crio.conf > /dev/null
 
-# we configure kubeadm to use crio
-kubeadm init --cri-socket=unix:///var/run/crio/crio.sock
+# We enable the cgroup driver in crio
+# Remove the hash
+cgroup_manager = "systemd"
 
-#Finally we configure kubelet to use crio
-vim /var/lib/kubelet/kubeadm-flags.env
-# We add
---container-runtime-endpoint=unix:///var/run/crio/crio.sock
+# Restart the crio service
+sudo systemctl restart crio
+
+# we configure kubeadm to use crio
+kubeadm init --apiserver-advertise-address=<ip> --cri-socket=unix:///var/run/crio/crio.sock
+
+# Change kubelet config to use the crio runtime (skip this step if you didnt use the parameter --cri-socket in kubeadm init)
+vim /var/lib/kubelet/kubeadm-flags.env 
+
+KUBELET_KUBEADM_ARGS="--container-runtime-endpoint=unix:///var/run/crio/crio.sock --pod-infra-container-image=registry.k8s.io/pause:3.10"
+
+# Once saved, check if kubelet is using crio
+ps -ef | grep kubelet
+
 # We restart kubelet
 sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 sudo systemctl restart kubelet
 
+Note: Sometimes you will get this (kubectl get nodes):
+NAME           STATUS     ROLES           AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
+controlplane   NotReady   control-plane   8m30s   v1.33.2   172.30.1.2    <none>        Ubuntu 24.04.3 LTS   6.8.0-51-generic   containerd://1.7.27
 
+# Even if you installed CRI-O as the container runtime, Kubernetes may show containerd:// in the CONTAINER-RUNTIME column 
+# of kubectl get nodes. This does not mean you are actually using containerd. What determines the real runtime is the socket kubelet 
+# is using. In your case, if kubelet is configured with:
+
+--container-runtime-endpoint=unix:///var/run/crio/crio.sock
+
+# That means you're using crio, regardless of what kubectl get nodes displays.
+# The node is NotReady because a CNI network plugin for pods has not been installed and declared.
 ```
 
 </p>
