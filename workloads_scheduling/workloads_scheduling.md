@@ -832,16 +832,13 @@ Allocatable:
 # For easier reading, convert Ki to Mi for calculations. If you want to see the total memory in GiB,
 # you can convert Mi to Gi.
 
-2097532Ki |  1 Mi     =     2097532   /   1024 = 2.048,37109375Mi
-            1024Ki
+2199932Ki |   1Mi   = 2199932 / 1024  =  2.148,37109375 Mi |   1Gi    = 2.148,37109375 / 1024  = 2,098018646240234375Gi
+            1024Ki                                            1024Mi
 
-
- 2.048,37109375Mi |   1Gi      =   2.048,37109375 / 1024 = 2,000362396240234375 Gi
-                     1024Mi
 
 # Therefore, we can confirm that each node has:
 cpu: 1 = 1000m
-memory: = 2,000362396240234375Gi  = 2GB
+memory: = 2,098018646240234375Gi (total memory of the node)
 
 # Next, let's apply the Deployment to see what is failing:
 # deploy.yaml
@@ -919,7 +916,10 @@ Events:
 # We divide the maximum allocatable memory (in Mi) by the three replicas. Since the problem does not specify that
 # we must use only one node, we can consider both nodes. Otherwise, we would need a node affinity.
 # We can infer that one node will host 2 Pods while the other node will host 1 Pod.
-# Since each node has a maximum memory of 2,048.37 Mi, we will focus on the node hosting 2 Pods:
+# To perform the calculations, we should use the allocatable memory, since that represents the total memory available for pods:
+
+2097532Ki |  1 Mi     =   2097532 / 1024  =  2.048,37109375Mi
+            1024Ki
 
 2.048,37109375Mi  / 2 (number of replicas) = 1.024,185546875Mi (maximum request per replica)
 
