@@ -336,8 +336,7 @@ Tasks:
 
 Note: Install cri-o using this link: https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v1.33/deb/amd64/cri-o_1.33.0-2.1_amd64.deb
 
-**You can use killercoda playgrounds to practice this scenario** <br>
-killercoda.com > Playgrounds > Scenario > kubernetes > [Reset a cluster and install cri-o](https://killercoda.com/playgrounds/scenario/kubernetes)
+**Use a VM or WSL to practice this scenario, because in Killercoda you cannot fully switch the container runtime to CRI-O.** <br>
 
 ---
 
@@ -421,17 +420,10 @@ sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 sudo systemctl restart kubelet
 
-Note: Sometimes you will get this (kubectl get nodes):
+Note: If you're using killercoda, you will get this, even if you configure crio(kubectl get nodes -o wide):
 NAME           STATUS     ROLES           AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
 controlplane   NotReady   control-plane   8m30s   v1.33.2   172.30.1.2    <none>        Ubuntu 24.04.3 LTS   6.8.0-51-generic   containerd://1.7.27
-
-# Even if you installed CRI-O as the container runtime, Kubernetes may show containerd:// in the CONTAINER-RUNTIME column 
-# of kubectl get nodes. This does not mean you are actually using containerd. What determines the real runtime is the socket kubelet 
-# is using. In your case, if kubelet is configured with:
-
---container-runtime-endpoint=unix:///var/run/crio/crio.sock
-
-# That means you're using crio, regardless of what kubectl get nodes displays.
+# this is because kubelet in Killercoda is tied to containerd, it will always show containerd://, regardless of any CRI-O configuration you try
 # The node is NotReady because a CNI network plugin for pods has not been installed and declared.
 ```
 
