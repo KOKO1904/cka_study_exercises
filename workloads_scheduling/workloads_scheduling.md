@@ -293,7 +293,7 @@ metadata:
   namespace: production
 spec:
   scaleTargetRef:
-  - kind: Deployment
+    kind: Deployment
     name: web-app
     apiVersion: apps/v1
   minReplicas: 2
