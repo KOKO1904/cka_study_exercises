@@ -425,6 +425,10 @@ NAME           STATUS     ROLES           AGE     VERSION   INTERNAL-IP   EXTERN
 controlplane   NotReady   control-plane   8m30s   v1.33.2   172.30.1.2    <none>        Ubuntu 24.04.3 LTS   6.8.0-51-generic   containerd://1.7.27
 # this is because kubelet in Killercoda is tied to containerd, it will always show containerd://, regardless of any CRI-O configuration you try
 # The node is NotReady because a CNI network plugin for pods has not been installed and declared.
+
+# If you're using a VM or wsl you must get:
+NAME              STATUS     ROLES           AGE   VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION                       CONTAINER-RUNTIME
+controlplane     NotReady   control-plane   78s   v1.33.5   172.23.120.121   <none>        Ubuntu 22.04.5 LTS   5.15.167.4-microsoft-standard-WSL2   cri-o://1.33.0
 ```
 
 </p>
