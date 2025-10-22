@@ -31,6 +31,7 @@ spec:
 
 # We use this command to check the ip of the pods:
 NAME                          READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+
 backend-v1-55f8668d8b-j6v2n   1/1     Running   0          47m   10.244.0.5   minikube   <none>           <none>
 backend-v2-d875f6c69-hsgc2    1/1     Running   0          47m   10.244.0.3   minikube   <none>           <none>
 backend-v2-d875f6c69-mz8vc    1/1     Running   0          47m   10.244.0.4   minikube   <none>           <none>
@@ -41,7 +42,7 @@ apiVersion: v1
 kind: Endpoints
 metadata:
   name: backend-v1-service
-subnets:
+subsets:
 - addresses:
   - ip: 10.244.0.5 # Change the ip here with the ip of your pod
   ports:
